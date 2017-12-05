@@ -1,0 +1,31 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+group 'io.saagie'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'scala'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+ext.mainClassName = "Stream"
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compileOnly group: 'org.apache.spark', name: "spark-core_$scalaMajor", version: spark
+    compileOnly group: 'org.apache.spark', name: "spark-sql_$scalaMajor", version: spark
+    compile group: 'org.apache.spark', name: "spark-streaming_$scalaMajor", version: spark
+    compile group: 'org.apache.spark', name: "spark-streaming-kafka-0-10_$scalaMajor", version: spark
+    compile group: 'org.apache.spark', name: "spark-sql-kafka-0-10_$scalaMajor", version: spark
+}
+
+shadowJar {
+    zip64 = true
+    manifest {
+        attributes "Main-Class": mainClassName
+    }
+}
