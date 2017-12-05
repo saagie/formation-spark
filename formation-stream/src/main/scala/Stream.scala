@@ -14,7 +14,6 @@ object Stream extends App {
 
   val sparkConf = new SparkConf()
     .setAppName("Spark Formation")
-    .setMaster("local[*]")
 
   val kafkaParams = Map[String, Object](
     "bootstrap.servers" -> "192.168.61.50:31200",
