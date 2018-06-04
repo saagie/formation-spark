@@ -6,7 +6,7 @@ scalaVersion := "2.11.12"
 
 resolvers += "spark-packages" at "https://dl.bintray.com/spark-packages/maven/"
 
-libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.1.0"
+libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.1.2" % "provided"
 
 assemblyMergeStrategy in assembly := {
   case PathList("org", "apache", "spark", "unused", "UnusedStubClass.class") => MergeStrategy.first
@@ -19,4 +19,4 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
-mainClass in assembly := Some("Example")
+//mainClass in assembly := Some("Example")

@@ -69,3 +69,4 @@ fabric.properties
 .idea
 metastore_db
 spark-warehouse
+result.csv
