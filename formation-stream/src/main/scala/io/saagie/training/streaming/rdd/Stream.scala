@@ -27,7 +27,7 @@ object Stream extends App {
     "bootstrap.servers" -> "192.168.61.50:31200",
     "key.deserializer" -> classOf[StringDeserializer],
     "value.deserializer" -> classOf[StringDeserializer],
-    "group.id" -> "spark-formation-group",
+    "group.id" -> "spark-formation-group-2",
     "auto.offset.reset" -> "latest",
     "enable.auto.commit" -> (false: java.lang.Boolean)
   )

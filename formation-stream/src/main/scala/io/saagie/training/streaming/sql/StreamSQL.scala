@@ -23,7 +23,7 @@ object StreamSQL extends App {
   val df = spark
     .readStream
     .format("kafka")
-    .option("startingOffsets", "earliest")
+    .option("startingOffsets", "latest")
     .option("kafka.bootstrap.servers", "192.168.61.50:31200")
     .option("subscribe", "spark")
     .load()
