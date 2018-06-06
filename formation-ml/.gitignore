@@ -73,3 +73,5 @@ dataset_clean.csv
 pipeline.model
 model
 formation-ml.iml
+pipelineMLP.model
+pipelineRFC.model

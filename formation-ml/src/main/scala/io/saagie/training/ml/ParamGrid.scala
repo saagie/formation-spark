@@ -1,15 +1,14 @@
 package io.saagie.training.ml
 
 import org.apache.spark.ml.Pipeline
-import org.apache.spark.ml.classification._
+import org.apache.spark.ml.classification.RandomForestClassifier
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.{IndexToString, StringIndexer, VectorAssembler, VectorIndexer}
+import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.{Encoders, SaveMode, SparkSession}
 
-case class Request(uuid: String, origin: String, ip: String, browser: String, timestamp: Long, latitude: Double, longitude: Double, price: Double)
-
-object SparkMLlib extends App {
-
+object ParamGrid extends App {
   val spark = SparkSession.builder()
     .appName("Spark ML")
     .master("local[*]")
@@ -39,8 +38,6 @@ object SparkMLlib extends App {
     .option("header", true)
     .csv("dataset.csv")
 
-  dirty.show(false)
-
   //Transforming our user agent column.
   val clean = dirty
     .select($"uuid", $"url", $"ip", toNav($"user_agent") as "browser", $"timestamp", $"latitude", $"longitude", $"price")
@@ -51,8 +48,6 @@ object SparkMLlib extends App {
     .option("header", true)
     .mode(SaveMode.Overwrite)
     .csv("dataset_clean.csv")
-
-  clean.show(false)
 
   //Definition of a schema for our CSV file
   val schema = Encoders.product[Request].schema
@@ -66,9 +61,6 @@ object SparkMLlib extends App {
     .na
     .drop()
 
-  //Our loaded dataset
-  ds.show(false)
-
   //Encoder to transform browser
   val encoder = new StringIndexer()
     .setInputCol("browser")
@@ -79,8 +71,6 @@ object SparkMLlib extends App {
     .fit(ds)
     .transform(ds)
 
-  dfEncoded.show(false)
-
   //Vector assembler to prepare features
   val vectorAssembler = new VectorAssembler()
     .setInputCols(Array("timestamp", "longitude", "latitude", "price"))
@@ -88,17 +78,12 @@ object SparkMLlib extends App {
 
   //Applying assembler to our features
   val dsFeatures = vectorAssembler.transform(dfEncoded)
-  dsFeatures.show(false)
 
   //Indexer of our browser into a label column
   val labelIndexer = new StringIndexer()
     .setInputCol("browser")
     .setOutputCol("label")
     .fit(dsFeatures)
-
-  labelIndexer
-    .transform(dsFeatures)
-    .show(false)
 
   //Indexing all our features
   val featureIndexer = new VectorIndexer()
@@ -126,27 +111,43 @@ object SparkMLlib extends App {
   //Training our model on data
   val modelRFC = pipelineRFC.fit(train)
 
-  modelRFC.write.overwrite().save("pipelineRFC.model")
-
-  modelRFC.transform(test).select($"browser", $"predictionLabel").show(false)
-
-
-  //Creation of a new classifier
-  val mlp = new MultilayerPerceptronClassifier()
+  //Definition of our evaluator
+  val evaluator = new MulticlassClassificationEvaluator()
     .setLabelCol("label")
-    .setFeaturesCol("indexed")
-    .setLayers(Array(4, 5, 4, 3))
-    .setBlockSize(128)
-    .setSeed(1234L)
-    .setMaxIter(100)
+    .setPredictionCol("prediction")
+    .setMetricName("accuracy")
 
-  //Creating a new pipeline with a different classifier
-  val pipelineMLP = new Pipeline()
-    .setStages(Array(encoder, vectorAssembler, labelIndexer, featureIndexer, mlp, labelConverter))
+  //Applying model to our test dataset
+  val predictions = modelRFC.transform(test)
 
-  val modelMLP = pipelineMLP.fit(train)
+  //Computing accuracy
+  val accuracy = evaluator.evaluate(predictions)
 
-  modelMLP.transform(ds).select($"browser", $"predictionLabel").show(false)
+  println(s"Test error: ${1.0 - accuracy}")
+  println(s"Accuracy: $accuracy\n")
 
-  mlp.write.overwrite().save("pipelineMLP.model")
+  System.exit(0)
+
+  //Defining a param grid for chosen algorithm
+  val paramGrid = new ParamGridBuilder()
+    .addGrid(rfc.getParam("maxDepth"), Array(5, 10, 15, 20, 25))
+    .build()
+
+  //Creating a train validation split transformer on our train dataset
+  val trainValidationSplit = new TrainValidationSplit()
+    .setEstimator(pipelineRFC)
+    .setEvaluator(evaluator)
+    .setEstimatorParamMaps(paramGrid)
+    .setTrainRatio(0.7)
+
+  //Applying our train validation split on the pipeline
+  val model = trainValidationSplit.fit(train)
+
+  //Computing predictions
+  val predictionsGrid = model.transform(test)
+
+  //Evaluation of accuracy of our multiple classifier
+  val accuracyGrid = evaluator.evaluate(predictionsGrid)
+  println(s"Test error: ${1.0 - accuracyGrid}")
+  println(s"Accuracy: $accuracyGrid")
 }
