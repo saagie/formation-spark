@@ -16,7 +16,7 @@ dependencies {
     compileOnly group: 'org.apache.spark', name: "spark-core_$scalaMajor", version: spark
     compileOnly group: 'org.apache.spark', name: "spark-sql_$scalaMajor", version: spark
 
-    compile group: 'org.apache.spark', name: "spark-streaming_$scalaMajor", version: spark
+    compileOnly group: 'org.apache.spark', name: "spark-streaming_$scalaMajor", version: spark
     compile group: 'org.apache.spark', name: "spark-streaming-kafka-0-10_$scalaMajor", version: spark
     compile group: 'org.apache.spark', name: "spark-sql-kafka-0-10_$scalaMajor", version: spark
 }

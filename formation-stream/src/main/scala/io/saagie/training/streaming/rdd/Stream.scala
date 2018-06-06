@@ -7,7 +7,6 @@ import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
 import org.apache.spark.streaming.{Minutes, Seconds, StreamingContext}
 import org.json4s.DefaultFormats
-import org.json4s.jackson.Serialization.read
 
 //Request class matching data in Kafka
 case class Request(origin: String, ip: String, userAgent: Option[String], timestamp: Long, latitude: Double, longitude: Double, price: Double)
@@ -65,7 +64,8 @@ object Stream extends App {
     //We transform the stream to get only the value
     .transform(_.map(_.value()))
     //If the rdd is not empty, we parse the JSON
-    .transform(rdd => if (!rdd.isEmpty()) {
+    .transform(rdd => if (!rdd.partitions.isEmpty) {
+    import org.json4s.jackson.Serialization.read
     rdd.map(read[Request])
   } else {
     streamingContext.sparkContext.emptyRDD[Request]

@@ -1,11 +1,10 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'scala'
 }
 
 group 'io.saagie'
 version '1.0-SNAPSHOT'
-
-apply plugin: 'scala'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 
@@ -18,7 +17,7 @@ dependencies {
     compile group: 'org.apache.spark', name: "spark-mllib_$scalaMajor", version: spark
 }
 
-ext.mainClassName = "SparkMLlib"
+ext.mainClassName = "io.saagie.training.ml.SparkMLlib"
 
 shadowJar {
     zip64 = true

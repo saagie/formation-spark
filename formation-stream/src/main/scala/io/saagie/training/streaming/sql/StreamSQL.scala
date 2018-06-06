@@ -8,11 +8,14 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization.read
 
 object StreamSQL extends App {
+  System.setProperty("HADOOP_USER_NAME", "hdfs")
+
   //Initialize a Spark Session
   val spark = SparkSession.builder()
     .appName("SQL Kafka")
     .config("spark.ui.showConsoleProgress", "false")
     .config("spark.executor.extraJavaOptions", "-Dlog4j.configuration=log4j.xml")
+    .config("spark.sql.streaming.checkpointLocation", "/user/formation-spark/streaming/sql/checkpoint")
     .getOrCreate()
 
   //Import sql functions
@@ -62,16 +65,16 @@ object StreamSQL extends App {
      based on request's timestamp's and compute average */
   val prices = ds
     .select(toNav($"userAgent") as "browser", $"timestamp" cast TimestampType, $"price")
-    .groupBy($"browser", window($"timestamp", "10 seconds"))
+    .groupBy($"browser", window($"timestamp", "60 seconds"))
     .agg(count($"price"), avg($"price"))
 
   //Write into a file not working with all Spark versions
-  //  prices
-  //    .writeStream
-  //    .format("parquet")
-  //    .option("path", "/user/formation-spark/streaming/sql")
-  //    .outputMode(OutputMode.Append())
-  //    .start()
+  prices
+    .writeStream
+    .format("csv")
+    .option("path", "/user/formation-spark/streaming/sql")
+    .outputMode(OutputMode.Append())
+    .start()
 
   //Write our aggregation into the console on each new value
   prices
