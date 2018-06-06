@@ -126,8 +126,6 @@ object ParamGrid extends App {
   println(s"Test error: ${1.0 - accuracy}")
   println(s"Accuracy: $accuracy\n")
 
-  System.exit(0)
-
   //Defining a param grid for chosen algorithm
   val paramGrid = new ParamGridBuilder()
     .addGrid(rfc.getParam("maxDepth"), Array(5, 10, 15, 20, 25))

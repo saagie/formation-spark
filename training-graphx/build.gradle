@@ -1,0 +1,26 @@
+plugins {
+    id 'scala'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+group 'io.saagie'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile group: 'org.apache.spark', name: "spark-core_$scalaMajor", version: spark
+    compile group: 'org.apache.spark', name: "spark-graphx_$scalaMajor", version: spark
+}
+
+shadowJar {
+    zip64 = true
+    classifier = ""
+    manifest {
+        attributes "Main-Class": "io.saagie.training.TweetConnection"
+    }
+}
