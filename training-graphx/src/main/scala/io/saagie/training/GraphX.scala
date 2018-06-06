@@ -3,7 +3,7 @@ package io.saagie.training
 import org.apache.spark.graphx.{GraphLoader, PartitionStrategy}
 import org.apache.spark.{SparkConf, SparkContext}
 
-object Graphx extends App {
+object GraphX extends App {
   //Create spark configuration
   val conf = new SparkConf()
     .setAppName("Spark Formation")

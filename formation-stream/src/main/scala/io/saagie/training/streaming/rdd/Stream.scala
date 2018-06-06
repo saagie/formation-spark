@@ -41,23 +41,28 @@ object Stream extends App {
     Subscribe[String, String](Array("spark"), kafkaParams)
   )
 
-  //Regex initialization
-  val opera = ".*Opera.*".r
-  val chrome = ".*Chrome.*".r
-  val firefox = ".*Firefox.*".r
-
   //Function that will transform user agent into a simple navigator string
   def nav(ua: String): String = {
-    ua match {
-      case opera() => "Opera"
-      case chrome() => "Chrome"
-      case firefox() => "Firefox"
-      case _ => ua
+    val opera = ".*Opera.*".r
+    val chrome = ".*Chrome.*".r
+    val firefox = ".*Firefox.*".r
+    if (ua != None.orNull) {
+      ua match {
+        case opera() => "Opera"
+        case chrome() => "Chrome"
+        case firefox() => "Firefox"
+        case _ => ua
+      }
+    } else {
+      "Aucun"
     }
   }
 
-  //Format used by json4s
-  implicit val formats = DefaultFormats
+  def parseValue(value: String): Request = {
+    import org.json4s.jackson.Serialization.read
+    implicit val formats = DefaultFormats
+    read[Request](value)
+  }
 
   //Initialization of the stream
   stream
@@ -65,8 +70,7 @@ object Stream extends App {
     .transform(_.map(_.value()))
     //If the rdd is not empty, we parse the JSON
     .transform(rdd => if (!rdd.partitions.isEmpty) {
-    import org.json4s.jackson.Serialization.read
-    rdd.map(read[Request])
+    rdd.map(parseValue)
   } else {
     streamingContext.sparkContext.emptyRDD[Request]
   })

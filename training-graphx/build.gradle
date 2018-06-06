@@ -21,6 +21,6 @@ shadowJar {
     zip64 = true
     classifier = ""
     manifest {
-        attributes "Main-Class": "io.saagie.training.TweetConnection"
+        attributes "Main-Class": "io.saagie.training.Graphx"
     }
 }

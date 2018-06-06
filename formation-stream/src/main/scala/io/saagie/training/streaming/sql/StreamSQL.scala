@@ -34,13 +34,13 @@ object StreamSQL extends App {
   //json4s formats
   implicit val formats = DefaultFormats
 
-  //Regexp used by udf
-  val opera = ".*Opera.*".r
-  val chrome = ".*Chrome.*".r
-  val firefox = ".*Firefox.*".r
-
   //We create an udf to transform each user agent into a navigator String
   val toNav = udf((ua: String) => {
+    //Regexp used by udf
+    val opera = ".*Opera.*".r
+    val chrome = ".*Chrome.*".r
+    val firefox = ".*Firefox.*".r
+
     if (ua != None.orNull) {
       ua match {
         case opera() => "Opera"
