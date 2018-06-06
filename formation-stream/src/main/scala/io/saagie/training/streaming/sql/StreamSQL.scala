@@ -19,8 +19,8 @@ object StreamSQL extends App {
     .getOrCreate()
 
   //Import sql functions
-  import org.apache.spark.sql.functions._
   import spark.implicits._
+  import org.apache.spark.sql.functions._
 
   //Open a stream to a kafka broker
   val df = spark
@@ -53,13 +53,19 @@ object StreamSQL extends App {
     }
   })
 
+  def parseValue(value: String): Request = {
+    import org.json4s.jackson.Serialization.read
+    implicit val formats = DefaultFormats
+    read[Request](value)
+  }
+
   //Select the value of the dataframe
   val stringValue = df
     .select($"value" cast StringType)
 
   //Map into a request object and therefore a Dataset
   val ds = stringValue
-    .map(a => read[Request](a.getString(0)))
+    .map(row => parseValue(row.getString(0)))
 
   /* Apply the udf to our request, group by browsers over a window of 10 seconds,
      based on request's timestamp's and compute average */
@@ -69,12 +75,12 @@ object StreamSQL extends App {
     .agg(count($"price"), avg($"price"))
 
   //Write into a file not working with all Spark versions
-  prices
-    .writeStream
-    .format("csv")
-    .option("path", "/user/formation-spark/streaming/sql")
-    .outputMode(OutputMode.Append())
-    .start()
+  /*  prices
+      .writeStream
+      .format("csv")
+      .option("path", "/user/formation-spark/streaming/sql")
+      .outputMode(OutputMode.Complete())
+      .start()*/
 
   //Write our aggregation into the console on each new value
   prices
